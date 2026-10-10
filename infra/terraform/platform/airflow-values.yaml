@@ -1,0 +1,67 @@
+executor: LocalExecutor
+
+uid: ${airflow_uid}
+gid: 0
+
+postgresql:
+  enabled: false
+data:
+  metadataSecretName: ${metadata_secret}
+
+createUserJob:
+  defaultUser:
+    role: Admin
+    username: admin
+    email: admin@banvic.local
+    firstName: BanVic
+    lastName: Admin
+
+extraEnvFrom: |
+  - secretRef:
+      name: ${connections_secret}
+
+extraEnv: |
+  - name: BANVIC_K8S_NAMESPACE
+    value: "${namespace}"
+  - name: BANVIC_MELTANO_IMAGE
+    value: "${meltano_image}"
+  - name: BANVIC_MELTANO_SECRET
+    value: "${meltano_secret}"
+
+dags:
+  persistence:
+    enabled: true
+    existingClaim: ${dags_claim}
+
+volumes:
+  - name: banvic-data
+    hostPath:
+      path: /mnt/banvic/data
+      type: Directory
+volumeMounts:
+  - name: banvic-data
+    mountPath: /opt/airflow/data
+
+apiServer:
+  service:
+    type: NodePort
+    ports:
+      - name: api-server
+        port: 8080
+        nodePort: 30080
+
+redis:
+  enabled: false
+statsd:
+  enabled: false
+triggerer:
+  enabled: false
+flower:
+  enabled: false
+
+config:
+  core:
+    load_examples: "False"
+    default_timezone: "America/Sao_Paulo"
+  dag_processor:
+    refresh_interval: 30

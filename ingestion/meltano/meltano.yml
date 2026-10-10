@@ -1,0 +1,46 @@
+version: 1
+default_environment: dev
+project_id: banvic-ingestion
+
+environments:
+  - name: dev
+
+plugins:
+  extractors:
+    - name: tap-csv
+      variant: meltanolabs
+      pip_url: git+https://github.com/MeltanoLabs/tap-csv.git@v1.3.2
+      config:
+        add_metadata_columns: true
+        files:
+          - entity: agencias
+            path: $MELTANO_PROJECT_ROOT/data/landing/agencias.csv
+            keys: [cod_agencia]
+          - entity: clientes
+            path: $MELTANO_PROJECT_ROOT/data/landing/clientes.csv
+            keys: [cod_cliente]
+          - entity: colaboradores
+            path: $MELTANO_PROJECT_ROOT/data/landing/colaboradores.csv
+            keys: [cod_colaborador]
+          - entity: colaborador_agencia
+            path: $MELTANO_PROJECT_ROOT/data/landing/colaborador_agencia.csv
+            keys: [cod_colaborador, cod_agencia]
+          - entity: contas
+            path: $MELTANO_PROJECT_ROOT/data/landing/contas.csv
+            keys: [num_conta]
+          - entity: propostas_credito
+            path: $MELTANO_PROJECT_ROOT/data/landing/propostas_credito.csv
+            keys: [cod_proposta]
+          - entity: transacoes
+            path: $MELTANO_PROJECT_ROOT/data/landing/transacoes.csv
+            keys: [cod_transacao]
+
+  loaders:
+    - name: target-postgres
+      variant: meltanolabs
+      pip_url: meltanolabs-target-postgres==0.8.0
+      config:
+        default_target_schema: raw
+        load_method: upsert
+        add_record_metadata: true
+        ssl_enable: false
